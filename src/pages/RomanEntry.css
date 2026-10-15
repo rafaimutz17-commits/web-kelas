@@ -1,0 +1,53 @@
+/* Only the entry story is changed; the class site's visual identity is retained. */
+.roman-entry-portrait {
+  top: 6%; left: 13%; width: min(37vw, 440px); height: 76%;
+  aspect-ratio: auto; border: 0; background: transparent; box-shadow: none;
+  overflow: visible;
+}
+.roman-entry-portrait > img, .roman-entry-final-figure {
+  object-fit: contain; filter: grayscale(1) sepia(.3) brightness(1.15);
+  /* A CSS silhouette of the downloaded photograph, not a generated model. */
+  clip-path: polygon(48% 14%, 56% 11%, 62% 13%, 66% 22%, 72% 22%, 76% 36%, 72% 55%, 73% 88%, 34% 91%, 32% 54%, 34% 36%, 40% 30%, 47% 28%, 46% 21%);
+}
+.roman-entry-portrait > img { object-fit: fill; }
+.roman-entry-portrait figcaption { left: 27%; right: 20%; bottom: 0; font-size: 8px; text-align: center; background: none; }
+.roman-entry-idea { position: absolute; top: 19%; left: 70%; width: 180px; color: #f2d5a2; font: italic 26px Georgia, serif; opacity: 0; }
+.roman-entry-paper { top: 24%; right: 14%; width: min(35vw, 450px); aspect-ratio: 1.25; overflow: visible; }
+.roman-entry-paper > img { width: 100%; height: 100%; opacity: .5; }
+.roman-entry-paper::after { content: ''; position: absolute; inset: 0 50% 0 auto; width: 1px; background: #78604466; box-shadow: 3px 0 8px #3a291333; pointer-events: none; }
+.roman-entry-perspective { z-index: 2; }
+.roman-entry-perspective path { stroke: #453422; stroke-width: 2; }
+.roman-entry-pencil { position: absolute; z-index: 4; width: clamp(65px, 9vw, 130px); aspect-ratio: 1; opacity: 0; transform: translateY(-100%); pointer-events: none; }
+.roman-entry-pencil img { width: 100%; height: 100%; clip-path: none; opacity: 1; filter: grayscale(1) sepia(.6); }
+.roman-entry-copy { bottom: 12%; }
+.roman-entry-final-art { inset: 0; width: 100%; height: 100%; translate: none; object-fit: cover; opacity: .6; }
+.roman-entry-final-figure { position: absolute; right: 2%; bottom: -12%; width: 52%; height: 110%; object-fit: fill; z-index: 1; }
+.roman-entry-mist { z-index: 1; left: 40%; bottom: -10%; height: 49%; background: radial-gradient(ellipse at 50% 80%, #fff 10%, #fff9 40%, transparent 70%); }
+.roman-entry-skip { position: absolute; z-index: 5; top: 24px; right: 24px; display: flex; align-items: center; gap: 12px; padding: 12px 16px; border: 1px solid #d4b37966; background: #211810cc; color: #f7e4c7; font-size: 12px; cursor: pointer; }
+.roman-entry-page.is-static .roman-entry-mist, .roman-entry-page.is-settled .roman-entry-mist { opacity: 1; }
+.roman-entry-page.is-settled .roman-entry-camera { will-change: auto; }
+.roman-entry-stage { min-height: min(620px, 100svh); }
+.roman-entry-panel { max-height: calc(100svh - 40px); overflow-y: auto; padding-block: 16px; }
+@media (max-width: 700px) {
+  .roman-entry-portrait { left: -17%; top: 9%; width: 83%; height: 64%; }
+  .roman-entry-paper { top: 29%; right: 7%; width: 48%; }
+  .roman-entry-idea { font-size: 18px; left: 65%; width: 120px; }
+  .roman-entry-copy { left: 7%; bottom: 13%; width: 86%; }
+  .roman-entry-copy h1 { font-size: clamp(2rem, 8vw, 3.5rem); }
+  .roman-entry-copy > p:last-child { max-width: 290px; font-size: 12px; }
+  .roman-entry-final-figure { width: 115%; right: -42%; height: 100%; opacity: .5; }
+  .roman-entry-panel { left: 7%; width: 86%; }
+  .roman-entry-final-shade { background: linear-gradient(90deg, #211810f5, #21181099); }
+  .roman-entry-mist { left: 30%; opacity: .5; }
+  .roman-entry-skip { top: 16px; right: 16px; }
+}
+@media (max-height: 550px) and (orientation: landscape) {
+  .roman-entry-copy h1 { font-size: 2rem; }
+  .roman-entry-copy > p:last-child { display: none; }
+  .roman-entry-portrait { height: 86%; top: 0; }
+  .roman-entry-paper { width: 30%; top: 15%; }
+  .roman-entry-panel h2 { font-size: 2rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .roman-entry-page *, .roman-entry-page *::after { animation: none !important; transition: none !important; }
+}

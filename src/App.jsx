@@ -42,10 +42,17 @@ function PageTransition({ children }) {
   return <div className="page-transition">{children}</div>
 }
 
+function EntryHome() {
+  const location = useLocation()
+  let entered = Boolean(location.state?.entryComplete)
+  try { entered ||= sessionStorage.getItem('roman-entry-complete') === '1' } catch { /* Optional storage. */ }
+  return entered ? <Home /> : <Login />
+}
+
 function AnimatedRoutes() {
   const location = useLocation()
   const route = useRoutes([
-    { path: '/', element: <Home /> },
+    { path: '/', element: <EntryHome /> },
     { path: '/members', element: <Members /> },
     { path: '/courses', element: <Courses /> },
     { path: '/course/:id', element: <CourseDetail /> },
