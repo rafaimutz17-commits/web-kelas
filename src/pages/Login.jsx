@@ -1,21 +1,13 @@
 import React, { useLayoutEffect, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useReducedMotion } from 'framer-motion'
-import { ArrowDown, ArrowLeft, ArrowRight, Eye, EyeOff, Landmark, LockKeyhole, Users } from 'lucide-react'
+import './RomanEntry.css'
+import { ArrowDown, ArrowLeft, ArrowRight, Eye, EyeOff, LockKeyhole, Users } from 'lucide-react'
 
 const IMAGE_SOURCES = [
-  {
-    href: 'https://commons.wikimedia.org/wiki/File:Marcus_Vitruvius_Roman._portrait.jpg',
-    label: 'Vitruvius',
-  },
-  {
-    href: 'https://commons.wikimedia.org/wiki/File:Drawing,_Roman_Ruins_with_Figures,_ca._1745_(CH_18357879).jpg',
-    label: 'Sketsa reruntuhan',
-  },
-  {
-    href: 'https://commons.wikimedia.org/wiki/File:Roman_Procession_MET_DP811261.jpg',
-    label: 'Prosesi Romawi · CC0',
-  },
+  { href: 'https://commons.wikimedia.org/wiki/File:Vitruvius,_Loggia_del_Consiglio,_Piazza_dei_Signori,_Verona_(37108421733).jpg', label: 'Vitruvius · Dimitris Kamaras (CC BY 2.0)' },
+  { href: 'https://commons.wikimedia.org/wiki/File:Drawing,_Roman_Ruins_with_Figures,_ca._1745_(CH_18357879).jpg', label: 'Sketsa Romawi' },
+  { href: 'https://github.com/twitter/twemoji', label: 'Pensil · Twemoji (CC BY 4.0)' },
 ]
 
 export default function Login() {
@@ -31,217 +23,68 @@ export default function Login() {
   const storyRef = useRef(null)
   const stageRef = useRef(null)
 
+  const panelRef = useRef(null)
+
   useLayoutEffect(() => {
+    if (step !== 'story') {
+      window.scrollTo({ top: 0, behavior: 'instant' })
+      panelRef.current?.querySelector('button, input')?.focus({ preventScroll: true })
+    }
+  }, [step])
+
+  useLayoutEffect(() => {
+    if (step !== 'story' || staticStory) return undefined
     if (prefersReducedMotion) {
       setStaticStory(true)
       setJourneyComplete(true)
       return undefined
     }
-
     let context
     let cancelled = false
-
     async function initializeScrollStory() {
       try {
         const [{ gsap }, { ScrollTrigger }] = await Promise.all([
-          import('gsap'),
-          import('gsap/ScrollTrigger'),
+          import('gsap'), import('gsap/ScrollTrigger'),
         ])
         if (cancelled) return
-
         gsap.registerPlugin(ScrollTrigger)
         context = gsap.context(() => {
           const timeline = gsap.timeline({
+            onUpdate() { setJourneyComplete(this.progress() >= 0.995) },
             scrollTrigger: {
-              trigger: storyRef.current,
-              start: 'top top',
-              end: '+=3200',
-              scrub: 1.25,
-              pin: stageRef.current,
-              anticipatePin: 1,
+              trigger: storyRef.current, start: 'top top',
+              end: () => `+=${Math.max(2200, window.innerHeight * 4)}`,
+              scrub: 0.6, pin: stageRef.current, anticipatePin: 1,
               invalidateOnRefresh: true,
-              onUpdate: ({ progress }) => {
-                  if (progress >= 0.985) setJourneyComplete(true)
-                if (progress < 0.94) setJourneyComplete(false)
-              },
             },
           })
-
+          gsap.set('.roman-entry-perspective path', {
+            strokeDasharray: (_, el) => el.getTotalLength(),
+            strokeDashoffset: (_, el) => el.getTotalLength(),
+          })
           timeline
-            .fromTo('.roman-entry-backdrop', {
-              scale: 1.04,
-              xPercent: 0,
-              yPercent: 0,
-            }, {
-              scale: 1.16,
-              xPercent: -3,
-              yPercent: 2,
-              duration: 0.9,
-              ease: 'none',
-            }, 0)
-            .fromTo('.roman-entry-portrait', {
-              autoAlpha: 1,
-              x: -24,
-              y: 18,
-              scale: 0.96,
-            }, {
-              autoAlpha: 1,
-              x: 0,
-              y: 0,
-              scale: 1,
-              duration: 0.16,
-              ease: 'power2.out',
-            }, 0)
-            .fromTo('.roman-entry-copy-kicker', {
-              autoAlpha: 0.72,
-              y: 8,
-            }, {
-              autoAlpha: 1,
-              y: 0,
-              duration: 0.1,
-              ease: 'power2.out',
-            }, 0.05)
-            .fromTo('.roman-entry-copy-title', {
-              autoAlpha: 0.94,
-              y: 10,
-              filter: 'blur(0px)',
-            }, {
-              autoAlpha: 1,
-              y: 0,
-              filter: 'blur(0px)',
-              duration: 0.18,
-              ease: 'power3.out',
-            }, 0.09)
-            .fromTo('.roman-entry-copy-description', {
-              autoAlpha: 0.9,
-              y: 8,
-            }, {
-              autoAlpha: 1,
-              y: 0,
-              duration: 0.13,
-              ease: 'power2.out',
-            }, 0.16)
-            .fromTo('.roman-entry-paper', {
-              autoAlpha: 1,
-              x: 45,
-              y: 12,
-              rotate: 1.5,
-              scale: 0.97,
-            }, {
-              autoAlpha: 1,
-              x: 0,
-              y: 0,
-              rotate: 0,
-              scale: 1,
-              duration: 0.2,
-              ease: 'power3.out',
-            }, 0.19)
-            .fromTo('.roman-entry-paper img', {
-              clipPath: 'inset(0 53% 0 0)',
-            }, {
-              clipPath: 'inset(0 0% 0 0)',
-              duration: 0.25,
-              ease: 'none',
-            }, 0.26)
-            .fromTo('.roman-entry-paper figcaption', {
-              autoAlpha: 0,
-              y: 12,
-            }, {
-              autoAlpha: 1,
-              y: 0,
-              duration: 0.1,
-              ease: 'power2.out',
-            }, 0.48)
-            .fromTo('.roman-entry-perspective path', {
-              strokeDashoffset: (index, element) => element.getTotalLength(),
-              autoAlpha: 0,
-            }, {
-              strokeDashoffset: 0,
-              autoAlpha: 0.72,
-              duration: 0.07,
-              stagger: 0.035,
-              ease: 'power1.out',
-            }, 0.47)
-            .to('.roman-entry-pencil-light', {
-              autoAlpha: 0.9,
-              left: '100%',
-              duration: 0.25,
-              ease: 'none',
-            }, 0.26)
-            .to('.roman-entry-camera', {
-              scale: 1.12,
-              x: '-1.5vw',
-              y: '1vh',
-              duration: 0.2,
-              ease: 'power2.inOut',
-            }, 0.42)
-            .to('.roman-entry-camera', {
-              scale: 2.2,
-              x: '-9vw',
-              y: '-1vh',
-              duration: 0.15,
-              ease: 'power3.in',
-            }, 0.62)
-            .to('.roman-entry-portrait', {
-              scale: 2.2,
-              x: '-11vw',
-              filter: 'blur(10px)',
-              autoAlpha: 0,
-              duration: 0.12,
-              ease: 'power3.in',
-            }, 0.65)
-            .to('.roman-entry-paper', {
-              scale: 2.5,
-              x: '-9vw',
-              y: '3vh',
-              rotate: -1.2,
-              duration: 0.19,
-              ease: 'power2.in',
-            }, 0.59)
-            .to('.roman-entry-perspective path', {
-              autoAlpha: 0,
-              duration: 0.08,
-              stagger: 0.01,
-              ease: 'power1.in',
-            }, 0.7)
-            .to('.roman-entry-camera', {
-              scale: 1.12,
-              x: '4vw',
-              y: '-1vh',
-              rotate: 6,
-              filter: 'blur(5px)',
-              duration: 0.1,
-              ease: 'power3.in',
-            }, 0.76)
-            .to('.roman-entry-final', {
-              autoAlpha: 1,
-              duration: 0.14,
-              ease: 'power1.out',
-            }, 0.79)
-            .to('.roman-entry-mist', {
-              autoAlpha: 1,
-              yPercent: -5,
-              duration: 0.18,
-              ease: 'power2.out',
-            }, 0.8)
-            .fromTo('.roman-entry-final-art', {
-              xPercent: 3,
-              scale: 1.04,
-            }, {
-              xPercent: -2,
-              scale: 1,
-              duration: 0.22,
-              ease: 'power1.out',
-            }, 0.78)
-            .to('.roman-entry-camera', {
-              scale: 1,
-              x: 0,
-              y: 0,
-              rotate: 0,
-              filter: 'blur(0px)',
-              duration: 0.17,
-              ease: 'power3.out',
-            }, 0.81)
+            .to('.roman-entry-copy', { autoAlpha: 0, y: -25, duration: 0.6 }, 0.3)
+            // A short push toward the architect, then the drawing surface.
+            .to('.roman-entry-camera', { scale: 1.65, transformOrigin: '30% 35%', filter: 'blur(5px)', duration: 0.25, ease: 'power3.in' }, 0.9)
+            .to('.roman-entry-camera', { filter: 'blur(0px)', duration: 0.2 }, 1.15)
+            .fromTo('.roman-entry-idea', { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.25 }, 1.2)
+            .to('.roman-entry-idea', { autoAlpha: 0, duration: 0.2 }, 1.7)
+            .to('.roman-entry-camera', { scale: 1, transformOrigin: '50% 50%', duration: 0.5, ease: 'power2.inOut' }, 1.7)
+            .to('.roman-entry-paper > img', { clipPath: 'inset(0 0% 0 0)', duration: 1.5, ease: 'none' }, 2.1)
+            .to('.roman-entry-perspective path', { strokeDashoffset: 0, autoAlpha: 0.85, duration: 0.25, stagger: 0.14, ease: 'none' }, 2.1)
+            .fromTo('.roman-entry-pencil', { autoAlpha: 0, left: '12%', top: '52%' }, { autoAlpha: 1, left: '50%', top: '24%', duration: 0.3 }, 2.1)
+            .to('.roman-entry-pencil', { left: '76%', top: '53%', rotation: 9, duration: 0.18 }, 2.4)
+            .to('.roman-entry-pencil', { left: '50%', top: '76%', rotation: -8, duration: 0.18 }, 2.58)
+            .to('.roman-entry-pencil', { left: '24%', top: '53%', rotation: 5, duration: 0.18 }, 2.76)
+            .to('.roman-entry-pencil', { left: '50%', top: '24%', rotation: -5, duration: 0.18 }, 2.94)
+            .to('.roman-entry-pencil', { left: '88%', top: '53%', rotation: 12, duration: 0.18, ease: 'power3.in' }, 3.12)
+            .to('.roman-entry-paper', { scale: 3.2, transformOrigin: '88% 53%', duration: 0.5, ease: 'power3.in' }, 3.5)
+            .to('.roman-entry-pencil', { scale: 18, transformOrigin: '0% 100%', duration: 0.4, ease: 'power3.in' }, 3.7)
+            .to('.roman-entry-camera', { rotation: -12, scale: 1.2, filter: 'blur(7px)', duration: 0.3 }, 4.1)
+            .to('.roman-entry-final', { autoAlpha: 1, duration: 0.4 }, 4.3)
+            .to('.roman-entry-camera', { rotation: 0, scale: 1, filter: 'blur(0px)', duration: 0.6, ease: 'power3.out' }, 4.4)
+            .fromTo('.roman-entry-final-figure', { autoAlpha: 0, y: 40 }, { autoAlpha: 1, y: 0, duration: 0.5 }, 4.5)
+            .to('.roman-entry-mist', { autoAlpha: 1, duration: 0.5 }, 4.5)
         }, storyRef)
       } catch (animationError) {
         if (!cancelled) {
@@ -251,14 +94,24 @@ export default function Login() {
         }
       }
     }
-
     initializeScrollStory()
-
     return () => {
       cancelled = true
       context?.revert()
     }
-  }, [prefersReducedMotion])
+  }, [prefersReducedMotion, staticStory, step])
+
+  function enterHome() {
+    try { sessionStorage.setItem('roman-entry-complete', '1') } catch { /* Storage is optional. */ }
+    navigate('/', { state: { entryComplete: true } })
+  }
+
+  function replay() {
+    window.scrollTo({ top: 0, behavior: 'instant' })
+    setJourneyComplete(false)
+    setStaticStory(false)
+    setStep('story')
+  }
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -281,6 +134,7 @@ export default function Login() {
             : 'Tidak dapat masuk sebagai admin.'),
         )
       }
+      try { sessionStorage.setItem('roman-entry-complete', '1') } catch { /* Optional storage. */ }
       navigate('/admin')
     } catch (requestError) {
       setError(
@@ -298,7 +152,7 @@ export default function Login() {
   const showGate = step === 'gate' || (journeyComplete && step === 'story')
 
   return (
-    <main className={`roman-entry-page ${staticStory ? 'is-static' : ''}`}>
+    <main className={`roman-entry-page ${staticStory ? 'is-static' : ''} ${step !== 'story' ? 'is-settled' : ''}`}>
       <section ref={storyRef} className="roman-entry-scroll" aria-label="Kisah pembuka arsitek Romawi">
         <div ref={stageRef} className="roman-entry-stage">
           <div className="roman-entry-camera">
@@ -306,11 +160,12 @@ export default function Login() {
 
             <figure className="roman-entry-portrait">
               <img
-                src="/images/vitruvius-portrait.jpg"
-                alt="Ilustrasi Marcus Vitruvius Roman, arsitek dan insinyur Romawi"
+                src="/images/vitruvius-standing.jpg"
+                alt="Foto patung Vitruvius berdiri dengan buku di Verona"
                 fetchPriority="high"
               />
               <figcaption>Marcus Vitruvius · architectus</figcaption>
+              <span className="roman-entry-idea">Sebuah gagasan.</span>
             </figure>
 
             <figure className="roman-entry-paper">
@@ -319,13 +174,13 @@ export default function Login() {
                 alt="Gambar perspektif reruntuhan dan lengkung arsitektur Romawi"
               />
               <svg className="roman-entry-perspective" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
-                <path d="M72 530 492 414 930 526" />
-                <path d="M492 414 492 138M492 414 492 875" />
-                <path d="m72 530 0 235 420 110M930 526v240L492 875" />
-                <path d="M180 500v276m626-270v270M300 467v348m410-345v344" />
-                <path d="m492 414 0 461" />
+                <path d="M30 400H970M30 400 500 240 970 400M30 400 500 850 970 400" />
+                <path d="M220 335 500 240 780 335M220 582 500 850 780 582" />
+                <path d="M220 335V582M500 240V850M780 335V582" />
+                <path d="M30 400 500 460 970 400M30 400 500 650 970 400" />
+                <path d="M360 288V716M640 288V716" />
               </svg>
-              <span className="roman-entry-pencil-light" aria-hidden="true" />
+              <span className="roman-entry-pencil" aria-hidden="true"><img src="/images/pencil.svg" alt="" /></span>
               <figcaption>Ide menjadi garis. Garis menjadi ruang.</figcaption>
             </figure>
 
@@ -335,13 +190,14 @@ export default function Login() {
               <p className="roman-entry-copy-description">Ikuti jejak seorang arsitek Romawi, dari selembar sketsa hingga gerbang kelas.</p>
             </div>
 
-            <section className={`roman-entry-final ${showGate || step !== 'story' ? 'is-visible' : ''}`} aria-live="polite">
+            <section ref={panelRef} className={`roman-entry-final ${showGate || step !== 'story' ? 'is-visible' : ''}`} aria-live="polite">
               <img
                 className="roman-entry-final-art"
-                src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Roman_Procession_MET_DP811261.jpg/1280px-Roman_Procession_MET_DP811261.jpg"
+                src="/images/roman-ruins-sketch.jpg"
                 alt=""
                 aria-hidden="true"
               />
+              <img className="roman-entry-final-figure" src="/images/vitruvius-standing.jpg" alt="" aria-hidden="true" />
               <div className="roman-entry-mist" aria-hidden="true" />
               <div className="roman-entry-final-shade" aria-hidden="true" />
 
@@ -352,9 +208,9 @@ export default function Login() {
                   <p className="roman-entry-panel-copy">Sketsa selesai. Bagaimana kamu ingin melanjutkan?</p>
                   <div className="roman-entry-actions">
                     <button type="button" className="roman-entry-primary" onClick={() => setStep('role')}>
-                      Lanjutkan <ArrowRight className="h-4 w-4" />
+                      Lanjut ke beranda <ArrowRight className="h-4 w-4" />
                     </button>
-                    <button type="button" className="roman-entry-secondary" onClick={() => navigate('/')}>
+                    <button type="button" className="roman-entry-secondary" onClick={() => setStep('cancelled')}>
                       Tidak jadi
                     </button>
                   </div>
@@ -366,6 +222,18 @@ export default function Login() {
                       </React.Fragment>
                     ))}
                   </p>
+                </div>
+              )}
+
+              {step === 'cancelled' && (
+                <div className="roman-entry-panel">
+                  <p className="roman-entry-kicker">SAMPAI JUMPA LAGI</p>
+                  <h2 className="roman-login-title">Berhenti di sini.</h2>
+                  <p className="roman-entry-panel-copy">Kamu belum masuk ke beranda. Gerbang ini tetap terbuka kapan pun kamu siap.</p>
+                  <div className="roman-entry-actions">
+                    <button className="roman-entry-primary" onClick={() => setStep('role')}>Lanjutkan</button>
+                    <button className="roman-entry-secondary" onClick={replay}>Ulangi cerita</button>
+                  </div>
                 </div>
               )}
 
@@ -382,7 +250,7 @@ export default function Login() {
                       <span><strong>Admin</strong><small>Kelola isi situs kelas</small></span>
                       <ArrowRight className="ml-auto h-4 w-4" />
                     </button>
-                    <button type="button" className="roman-entry-role" onClick={() => navigate('/')}>
+                    <button type="button" className="roman-entry-role" onClick={enterHome}>
                       <Users className="h-5 w-5" />
                       <span><strong>Pengunjung</strong><small>Jelajahi situs kelas</small></span>
                       <ArrowRight className="ml-auto h-4 w-4" />
@@ -440,9 +308,9 @@ export default function Login() {
               <span>Gulir perlahan untuk melanjutkan</span>
               <ArrowDown className="h-4 w-4" />
             </div>
-            <Link to="/" className="roman-entry-exit" aria-label="Kembali ke beranda">
-              <Landmark className="h-4 w-4" />
-            </Link>
+            {step === 'story' && !journeyComplete && (
+              <button type="button" className="roman-entry-skip" onClick={() => setStep('gate')}>Lewati animasi <ArrowRight size={14} /></button>
+            )}
           </div>
         </div>
       </section>
