@@ -1933,3 +1933,63 @@ html:has(body.roman-page) {
     width: 110px;
   }
 }
+
+/* Keep navigation and the final gate outside the moving camera. */
+.roman-entry-final[data-interactive="true"] {
+  opacity: 1 !important;
+  visibility: visible !important;
+  clip-path: none !important;
+}
+
+.roman-entry-final.is-visible .roman-entry-mist {
+  animation: none;
+}
+
+.roman-entry-skip {
+  position: absolute;
+  z-index: 5;
+  top: 25px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  border: 1px solid rgba(225, 195, 143, 0.3);
+  border-radius: 24px;
+  padding: 8px 14px;
+  background: rgba(31, 22, 15, 0.75);
+  color: #fff3dc;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.roman-entry-page.is-static .roman-entry-stage {
+  min-height: 100svh;
+  height: auto;
+}
+
+.roman-entry-page.is-static .roman-entry-final {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  padding: 90px 0 50px;
+}
+
+.roman-entry-page.is-static .roman-entry-panel {
+  position: relative;
+  top: auto;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .roman-entry-role-list .roman-entry-role { animation: none; }
+}
+
+@media (max-height: 620px) and (prefers-reduced-motion: no-preference) {
+  .roman-entry-stage { min-height: 0; }
+  .roman-entry-panel {
+    max-height: calc(100svh - 110px);
+    overflow-y: auto;
+  }
+}

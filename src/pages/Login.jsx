@@ -30,6 +30,7 @@ export default function Login() {
   const prefersReducedMotion = useReducedMotion()
   const storyRef = useRef(null)
   const stageRef = useRef(null)
+  const timelineRef = useRef(null)
 
   useLayoutEffect(() => {
     if (prefersReducedMotion) {
@@ -50,201 +51,97 @@ export default function Login() {
         if (cancelled) return
 
         gsap.registerPlugin(ScrollTrigger)
+        setStaticStory(false)
         context = gsap.context(() => {
+          const stage = stageRef.current
+          const portrait = stage.querySelector('.roman-entry-portrait')
+          const paper = stage.querySelector('.roman-entry-paper')
+          // Measure the untransformed layout, so focal points survive resize.
+          const focus = (element, fill = false) => {
+            const scale = fill
+              ? Math.max(stage.clientWidth / element.offsetWidth, stage.clientHeight / element.offsetHeight) * 1.12
+              : Math.min(1.7, stage.clientHeight * 0.84 / element.offsetHeight)
+            return {
+              scale,
+              x: (stage.clientWidth / 2 - element.offsetLeft - element.offsetWidth / 2) * scale,
+              y: (stage.clientHeight / 2 - element.offsetTop - element.offsetHeight / 2) * scale,
+            }
+          }
+          gsap.set('.roman-entry-perspective path', {
+            strokeDasharray: (_, path) => path.getTotalLength(),
+            strokeDashoffset: (_, path) => path.getTotalLength(),
+          })
+          gsap.set('.roman-entry-camera', { transformOrigin: '50% 50%' })
+          gsap.set([portrait, paper], { transformOrigin: '50% 50%' })
+
           const timeline = gsap.timeline({
+            defaults: { ease: 'power2.inOut' },
+            onUpdate: () => setJourneyComplete(timeline.progress() >= 0.94),
             scrollTrigger: {
               trigger: storyRef.current,
               start: 'top top',
-              end: '+=3200',
-              scrub: 1.25,
-              pin: stageRef.current,
+              end: () => `+=${Math.max(2200, stage.clientHeight * 4.2)}`,
+              scrub: 0.65,
+              pin: stage,
               anticipatePin: 1,
               invalidateOnRefresh: true,
-              onUpdate: ({ progress }) => {
-                  if (progress >= 0.985) setJourneyComplete(true)
-                if (progress < 0.94) setJourneyComplete(false)
-              },
             },
           })
+          timelineRef.current = timeline
 
+          // Establish → approach → travel into the drawing → reveal the gate.
+          // Each shot holds before moving; the next scene is already underneath.
           timeline
-            .fromTo('.roman-entry-backdrop', {
-              scale: 1.04,
-              xPercent: 0,
-              yPercent: 0,
-            }, {
-              scale: 1.16,
-              xPercent: -3,
-              yPercent: 2,
-              duration: 0.9,
-              ease: 'none',
+            .fromTo('.roman-entry-copy > *', { y: 18, autoAlpha: 0 }, {
+              y: 0, autoAlpha: 1, duration: 0.65, stagger: 0.12, ease: 'power3.out',
             }, 0)
-            .fromTo('.roman-entry-portrait', {
-              autoAlpha: 1,
-              x: -24,
-              y: 18,
-              scale: 0.96,
-            }, {
-              autoAlpha: 1,
-              x: 0,
-              y: 0,
-              scale: 1,
-              duration: 0.16,
-              ease: 'power2.out',
-            }, 0)
-            .fromTo('.roman-entry-copy-kicker', {
-              autoAlpha: 0.72,
-              y: 8,
-            }, {
-              autoAlpha: 1,
-              y: 0,
-              duration: 0.1,
-              ease: 'power2.out',
-            }, 0.05)
-            .fromTo('.roman-entry-copy-title', {
-              autoAlpha: 0.94,
-              y: 10,
-              filter: 'blur(0px)',
-            }, {
-              autoAlpha: 1,
-              y: 0,
-              filter: 'blur(0px)',
-              duration: 0.18,
-              ease: 'power3.out',
-            }, 0.09)
-            .fromTo('.roman-entry-copy-description', {
-              autoAlpha: 0.9,
-              y: 8,
-            }, {
-              autoAlpha: 1,
-              y: 0,
-              duration: 0.13,
-              ease: 'power2.out',
-            }, 0.16)
-            .fromTo('.roman-entry-paper', {
-              autoAlpha: 1,
-              x: 45,
-              y: 12,
-              rotate: 1.5,
-              scale: 0.97,
-            }, {
-              autoAlpha: 1,
-              x: 0,
-              y: 0,
-              rotate: 0,
-              scale: 1,
-              duration: 0.2,
-              ease: 'power3.out',
-            }, 0.19)
-            .fromTo('.roman-entry-paper img', {
-              clipPath: 'inset(0 53% 0 0)',
-            }, {
-              clipPath: 'inset(0 0% 0 0)',
-              duration: 0.25,
-              ease: 'none',
-            }, 0.26)
-            .fromTo('.roman-entry-paper figcaption', {
-              autoAlpha: 0,
-              y: 12,
-            }, {
-              autoAlpha: 1,
-              y: 0,
-              duration: 0.1,
-              ease: 'power2.out',
-            }, 0.48)
-            .fromTo('.roman-entry-perspective path', {
-              strokeDashoffset: (index, element) => element.getTotalLength(),
-              autoAlpha: 0,
-            }, {
-              strokeDashoffset: 0,
-              autoAlpha: 0.72,
-              duration: 0.07,
-              stagger: 0.035,
-              ease: 'power1.out',
-            }, 0.47)
-            .to('.roman-entry-pencil-light', {
-              autoAlpha: 0.9,
-              left: '100%',
-              duration: 0.25,
-              ease: 'none',
-            }, 0.26)
+            .to('.roman-entry-copy', { y: -35, autoAlpha: 0, duration: 0.5 }, 1.1)
+            .to('.roman-entry-scroll-hint', { autoAlpha: 0, duration: 0.3 }, 1.1)
             .to('.roman-entry-camera', {
-              scale: 1.12,
-              x: '-1.5vw',
-              y: '1vh',
-              duration: 0.2,
-              ease: 'power2.inOut',
-            }, 0.42)
+              scale: () => focus(portrait).scale,
+              x: () => focus(portrait).x,
+              y: () => focus(portrait).y,
+              duration: 1.2,
+            }, 1.15)
+            .to('.roman-entry-backdrop', { scale: 1.1, duration: 2.4, ease: 'none' }, 1.15)
             .to('.roman-entry-camera', {
-              scale: 2.2,
-              x: '-9vw',
-              y: '-1vh',
-              duration: 0.15,
-              ease: 'power3.in',
-            }, 0.62)
-            .to('.roman-entry-portrait', {
-              scale: 2.2,
-              x: '-11vw',
-              filter: 'blur(10px)',
-              autoAlpha: 0,
-              duration: 0.12,
-              ease: 'power3.in',
-            }, 0.65)
-            .to('.roman-entry-paper', {
-              scale: 2.5,
-              x: '-9vw',
-              y: '3vh',
-              rotate: -1.2,
-              duration: 0.19,
-              ease: 'power2.in',
-            }, 0.59)
+              scale: () => focus(paper).scale,
+              x: () => focus(paper).x,
+              y: () => focus(paper).y,
+              duration: 1.35, ease: 'power3.inOut',
+            }, 2.8)
+            .to(portrait, { autoAlpha: 0, duration: 0.65 }, 3)
+            .to('.roman-entry-paper img', {
+              clipPath: 'inset(0 0% 0 0)', duration: 1.2, ease: 'none',
+            }, 3.1)
             .to('.roman-entry-perspective path', {
-              autoAlpha: 0,
-              duration: 0.08,
-              stagger: 0.01,
-              ease: 'power1.in',
-            }, 0.7)
+              strokeDashoffset: 0, autoAlpha: 0.72, stagger: 0.14,
+              duration: 0.65, ease: 'none',
+            }, 3.6)
             .to('.roman-entry-camera', {
-              scale: 1.12,
-              x: '4vw',
-              y: '-1vh',
-              rotate: 6,
-              filter: 'blur(5px)',
-              duration: 0.1,
-              ease: 'power3.in',
-            }, 0.76)
-            .to('.roman-entry-final', {
-              autoAlpha: 1,
-              duration: 0.14,
-              ease: 'power1.out',
-            }, 0.79)
-            .to('.roman-entry-mist', {
-              autoAlpha: 1,
-              yPercent: -5,
-              duration: 0.18,
-              ease: 'power2.out',
-            }, 0.8)
-            .fromTo('.roman-entry-final-art', {
-              xPercent: 3,
-              scale: 1.04,
+              scale: () => focus(paper, true).scale,
+              x: () => focus(paper, true).x,
+              y: () => focus(paper, true).y,
+              duration: 1.6, ease: 'power3.inOut',
+            }, 5.1)
+            .to('.roman-entry-paper figcaption', { autoAlpha: 0, duration: 0.3 }, 5.1)
+            .to('.roman-entry-perspective', { autoAlpha: 0, duration: 0.4 }, 5.9)
+            .fromTo('.roman-entry-final', {
+              autoAlpha: 1, clipPath: 'inset(50% 50% 50% 50%)',
             }, {
-              xPercent: -2,
-              scale: 1,
-              duration: 0.22,
-              ease: 'power1.out',
-            }, 0.78)
-            .to('.roman-entry-camera', {
-              scale: 1,
-              x: 0,
-              y: 0,
-              rotate: 0,
-              filter: 'blur(0px)',
-              duration: 0.17,
-              ease: 'power3.out',
-            }, 0.81)
+              clipPath: 'inset(0% 0% 0% 0%)', duration: 1.3, ease: 'power3.inOut',
+            }, 6.25)
+            .fromTo('.roman-entry-final-art', { scale: 1.2, xPercent: 4 }, {
+              scale: 1, xPercent: 0, duration: 1.65, ease: 'power2.out',
+            }, 6.25)
+            .to('.roman-entry-camera', { autoAlpha: 0, duration: 0.2 }, 7.4)
+            .to({}, { duration: 0.65 })
         }, storyRef)
+
       } catch (animationError) {
         if (!cancelled) {
+          context?.revert()
+          timelineRef.current = null
           console.error('Tidak dapat memuat animasi gerbang login.', animationError)
           setStaticStory(true)
           setJourneyComplete(true)
@@ -257,8 +154,19 @@ export default function Login() {
     return () => {
       cancelled = true
       context?.revert()
+      timelineRef.current = null
     }
   }, [prefersReducedMotion])
+
+  function skipStory() {
+    const timeline = timelineRef.current
+    if (timeline?.scrollTrigger) {
+      timeline.scrollTrigger.scroll(timeline.scrollTrigger.end)
+      timeline.progress(1)
+    }
+    setJourneyComplete(true)
+    setStep('gate')
+  }
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -335,7 +243,9 @@ export default function Login() {
               <p className="roman-entry-copy-description">Ikuti jejak seorang arsitek Romawi, dari selembar sketsa hingga gerbang kelas.</p>
             </div>
 
-            <section className={`roman-entry-final ${showGate || step !== 'story' ? 'is-visible' : ''}`} aria-live="polite">
+          </div>
+
+            <section data-interactive={step !== 'story' || staticStory} className={`roman-entry-final ${showGate || step !== 'story' ? 'is-visible' : ''}`} aria-live="polite">
               <img
                 className="roman-entry-final-art"
                 src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Roman_Procession_MET_DP811261.jpg/1280px-Roman_Procession_MET_DP811261.jpg"
@@ -440,10 +350,14 @@ export default function Login() {
               <span>Gulir perlahan untuk melanjutkan</span>
               <ArrowDown className="h-4 w-4" />
             </div>
+            {step === 'story' && !journeyComplete && (
+              <button type="button" className="roman-entry-skip" onClick={skipStory}>
+                Lewati animasi <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            )}
             <Link to="/" className="roman-entry-exit" aria-label="Kembali ke beranda">
               <Landmark className="h-4 w-4" />
             </Link>
-          </div>
         </div>
       </section>
     </main>
