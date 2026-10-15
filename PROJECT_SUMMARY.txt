@@ -1,0 +1,37 @@
+WebKelas - Platform Pembelajaran Interaktif dengan Animasi 3D
+
+Proyek ini merupakan sebuah platform pembelajaran interaktif yang menggunakan teknologi 3D dan animasi untuk membuat pengalaman belajar lebih menarik dan efektif.
+
+Fitur Utama:
+1. Antarmuka Modern dan Responsif
+2. Animasi 3D Utama (puzzle 3D berputar)
+3. Animasi UI Halus (GSAP dan Framer Motion)
+4. Struktur Halaman Lengkap (Beranda, Kursus, Detail Kursus, Tentang Kami, Kontak, 404)
+5. Komponen yang Dapat Digunakan Kembali (AnimatedText, PuzzleAnimation)
+
+Teknologi yang Digunakan:
+- Frontend Framework: React 18 dengan Vite
+- Animasi 3D: Three.js + @react-three/fiber + @react-three/drei
+- Animasi UI: GSAP + Framer Motion
+- Routing: React Router DOM
+- Styling: Tailwind CSS
+
+Struktur File:
+src/
++-- assets/
++-- components/
+¦   +-- AnimatedText.jsx
+¦   +-- PuzzleAnimation.jsx
++-- pages/
+¦   +-- Home.jsx
+¦   +-- Courses.jsx
+¦   +-- CourseDetail.jsx
+¦   +-- About.jsx
+¦   +-- Contact.jsx
+¦   +-- NotFound.jsx
++-- App.jsx
++-- App.css
++-- main.jsx
+
+Catatan: Debido a problemas técnicos con el entorno de ejecución actual, el servidor de desarrollo no puede iniciarse normalmente. En un entorno estándar, usar: npm install seguido de npm run dev
+
